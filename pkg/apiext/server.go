@@ -112,12 +112,19 @@ func (s *WebhookServer) Run(ctx context.Context, scheme *runtime.Scheme) error {
 	leaderElectionEnabled := s.isLeaderElectionEnabled()
 	s.logger.Info("leader election support", zap.Bool("enabled", leaderElectionEnabled))
 
+	leaseDuration := 15 * time.Second
+	renewDeadline := 10 * time.Second
+	retryPeriod := 2 * time.Second
+
 	mgr, err := manager.New(k8sConfig, manager.Options{
 		Scheme:                        scheme,
 		LeaderElection:                leaderElectionEnabled,
 		LeaderElectionID:              leaderElectionID,
 		LeaderElectionNamespace:       s.namespace,
 		LeaderElectionReleaseOnCancel: true,
+		LeaseDuration:                 &leaseDuration,
+		RenewDeadline:                 &renewDeadline,
+		RetryPeriod:                   &retryPeriod,
 		Metrics:                       server.Options{BindAddress: "0"},
 		Cache:                         s.buildCacheOptions(),
 	})
